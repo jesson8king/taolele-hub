@@ -3,42 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YTWHZ 极效流媒体中心 | 电视直播版</title>
+    <title>YTWHZ 影音终极枢纽</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js"></script>
     <style>
-        body { background: #0f172a; color: white; font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
-        .channel-item:hover { background: rgba(56, 189, 248, 0.2); }
-        #dplayer { border-radius: 1rem; overflow: hidden; background: #000; height: 400px; }
+        body { background: #020617; color: white; font-family: sans-serif; }
+        .glass { background: rgba(30, 41, 59, 0.5); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.05); }
+        .channel-item:hover { background: rgba(56, 189, 248, 0.1); color: #38bdf8; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        #dplayer { border-radius: 12px; overflow: hidden; background: #000; height: 450px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body class="p-4 md:p-8">
-    <header class="max-w-7xl mx-auto mb-6 flex justify-between items-center">
+    <header class="max-w-7xl mx-auto mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
         <div>
-            <h1 class="text-3xl font-bold text-sky-400">YTWHZ TV HUB</h1>
-            <p class="text-slate-400 text-xs">集成全球合法直播源 (M3U)</p>
+            <h1 class="text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-indigo-500">YTWHZ ULTIMATE</h1>
+            <p class="text-slate-500 text-xs mt-1">直播源 + 影视聚合 (CMS) 自定义控制台</p>
         </div>
-        <div id="timerDisplay" class="font-mono text-xl text-sky-400">00:00</div>
+        <div class="flex gap-4 items-center">
+            <span id="timerDisplay" class="font-mono text-xl text-sky-500 bg-sky-500/10 px-4 py-1 rounded-full">00:00</span>
+        </div>
     </header>
 
     <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div class="lg:col-span-3 space-y-6">
             <div id="dplayer"></div>
             
-            <section class="glass p-6 rounded-2xl flex gap-3">
-                <input id="searchInput" type="text" placeholder="搜索电影或剧集..." class="flex-1 bg-slate-800 border-none rounded-xl px-4 py-2 outline-none">
-                <button onclick="multiSearch()" class="bg-sky-500 hover:bg-sky-400 px-6 py-2 rounded-xl font-bold transition">搜索</button>
+            <section class="glass p-6 rounded-2xl">
+                <div class="flex flex-col md:flex-row gap-3">
+                    <input id="movieSearch" type="text" placeholder="输入电影名，从聚合源搜索..." class="flex-1 bg-slate-900/80 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-sky-500 transition">
+                    <button onclick="searchCms()" class="bg-indigo-600 hover:bg-indigo-500 px-8 py-3 rounded-xl font-bold transition">影视搜索</button>
+                    <button onclick="multiSearch()" class="bg-slate-700 hover:bg-slate-600 px-6 py-3 rounded-xl font-bold transition text-xs text-slate-300">外部全搜</button>
+                </div>
+                <div id="searchTips" class="mt-3 text-[10px] text-slate-500">注：聚合源搜索结果将引导至资源接口或弹出。</div>
             </section>
         </div>
 
-        <aside class="lg:col-span-1 glass rounded-3xl overflow-hidden flex flex-col" style="height: 520px;">
-            <div class="p-4 bg-sky-500/10 border-b border-white/10">
-                <h3 class="font-bold text-sky-400 flex items-center gap-2">📺 在线直播源</h3>
-            </div>
-            <div id="channelList" class="flex-1 overflow-y-auto p-2 space-y-1">
-                <div class="p-8 text-center text-slate-500 text-sm">正在加载频道列表...</div>
+        <aside class="lg:col-span-1 flex flex-col gap-4">
+            <div class="glass rounded-2xl overflow-hidden flex flex-col h-[600px]">
+                <div class="p-4 bg-white/5 border-b border-white/5 flex justify-between items-center">
+                    <h3 class="font-bold text-sky-400 text-sm italic">LIVE CHANNELS</h3>
+                    <span class="text-[10px] bg-sky-500/20 px-2 py-0.5 rounded text-sky-300">M3U</span>
+                </div>
+                <div id="channelList" class="flex-1 overflow-y-auto p-2 space-y-0.5">
+                    <div class="p-8 text-center text-slate-500 text-xs animate-pulse">正在同步全球直播源...</div>
+                </div>
             </div>
         </aside>
     </main>
@@ -47,62 +58,23 @@
         let dp;
         
         // 初始化播放器
-        function initPlayer(url, title = '正在播放') {
+        function initPlayer(url) {
+            if (dp) dp.destroy();
             dp = new DPlayer({
                 container: document.getElementById('dplayer'),
                 live: true,
-                video: {
-                    url: url,
-                    type: 'hls'
-                }
+                autoplay: true,
+                video: { url: url, type: 'hls' }
             });
-            dp.play();
         }
 
-        // 解析 M3U 并加载频道
-        async function loadChannels() {
-            const m3uUrl = 'https://raw.githubusercontent.com/Kimentanm/aptv/master/m3u/iptv.m3u';
+        // 加载 M3U 直播源
+        async function loadLive() {
+            const url = 'https://raw.githubusercontent.com/Kimentanm/aptv/master/m3u/iptv.m3u';
             try {
-                const response = await fetch(m3uUrl);
-                const data = await response.text();
-                const lines = data.split('\n');
-                const channels = [];
-
+                const res = await fetch(url);
+                const text = await res.text();
+                const lines = text.split('\n');
+                let html = '';
                 for (let i = 0; i < lines.length; i++) {
-                    if (lines[i].startsWith('#EXTINF')) {
-                        const title = lines[i].split(',')[1] || '未知频道';
-                        const url = lines[i + 1]?.trim();
-                        if (url && url.startsWith('http')) {
-                            channels.push({ title, url });
-                        }
-                    }
-                }
-
-                const listContainer = document.getElementById('channelList');
-                listContainer.innerHTML = channels.map(ch => `
-                    <div class="channel-item p-3 rounded-lg cursor-pointer text-sm transition" 
-                         onclick="initPlayer('${ch.url}', '${ch.title}')">
-                        <span class="text-slate-300">▶</span> ${ch.title}
-                    </div>
-                `).join('');
-
-                // 默认播放第一个频道
-                if (channels.length > 0) initPlayer(channels[0].url, channels[0].title);
-
-            } catch (err) {
-                document.getElementById('channelList').innerHTML = '<div class="p-4 text-red-400 text-xs">加载失败，请检查网络访问 GitHub 的权限。</div>';
-            }
-        }
-
-        function multiSearch() {
-            const query = document.getElementById('searchInput').value;
-            if (!query) return;
-            window.open(`https://tubitv.com/search/${encodeURIComponent(query)}`, '_blank');
-            window.open(`https://www.rottentomatoes.com/search?search=${encodeURIComponent(query)}`, '_blank');
-        }
-
-        // 页面加载后执行
-        window.onload = loadChannels;
-    </script>
-</body>
-</html>
+                    if (lines[i].includes('#EXTINF')) {

@@ -3,45 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YTWHZ 影音中心 | 稳定版</title>
+    <title>YTWHZ 影音中心 | 私人代理增强版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js"></script>
     <style>
-        body { background: #0f172a; color: white; }
-        .glass { background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(255,255,255,0.1); }
-        #dplayer { border-radius: 12px; height: 450px; background: #000; }
-        .channel-list { height: 500px; overflow-y: auto; }
-        .channel-item { cursor: pointer; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .channel-item:hover { background: rgba(56, 189, 248, 0.2); }
+        body { background: #020617; color: white; font-family: sans-serif; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        #dplayer { border-radius: 12px; height: 450px; background: #000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .channel-list { height: 550px; overflow-y: auto; }
+        .channel-item { cursor: pointer; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); transition: 0.2s; }
+        .channel-item:hover { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
     </style>
 </head>
-<body class="p-4 md:p-10 min-h-screen">
+<body class="p-4 md:p-8 min-h-screen">
     <div class="max-w-7xl mx-auto">
-        <header class="mb-8">
-            <h1 class="text-3xl font-bold text-sky-400">YTWHZ TV HUB</h1>
-            <p class="text-slate-400 text-sm">直播源 + 聚合搜索 (稳定线路重构版)</p>
+        <header class="mb-6 flex justify-between items-end">
+            <div>
+                <h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-indigo-500">YTWHZ TV HUB</h1>
+                <p class="text-slate-500 text-xs">私人代理模式已开启 • 时刻流畅</p>
+            </div>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <div class="lg:col-span-3 space-y-6">
+            <div class="lg:col-span-3 space-y-4">
                 <div id="dplayer"></div>
-                
                 <div class="glass p-6 rounded-2xl">
                     <div class="flex gap-2">
-                        <input id="kw" type="text" placeholder="输入片名搜索..." class="flex-1 bg-slate-900 border-none rounded-lg px-4 py-2 outline-none">
-                        <button onclick="doSearch()" class="bg-sky-600 px-6 py-2 rounded-lg font-bold">全网搜索</button>
-                    </div>
-                    <div class="mt-4 text-xs text-slate-500">
-                        提示：如果直播无法播放，请检查网络是否可以访问外网直播流。
+                        <input id="kw" type="text" placeholder="输入片名搜索电影/剧集..." class="flex-1 bg-slate-900 border-none rounded-xl px-5 py-3 outline-none focus:ring-1 ring-sky-500 transition">
+                        <button onclick="doSearch()" class="bg-indigo-600 hover:bg-indigo-500 px-8 py-3 rounded-xl font-bold transition">影视搜索</button>
                     </div>
                 </div>
             </div>
 
-            <div class="lg:col-span-1 glass rounded-2xl overflow-hidden">
-                <div class="p-4 bg-sky-900/50 font-bold border-b border-white/10 text-sm">频道列表</div>
-                <div id="list" class="channel-list text-sm text-slate-300">
-                    <div class="p-10 text-center animate-pulse">正在通过代理加载线路...</div>
+            <div class="lg:col-span-1 glass rounded-2xl overflow-hidden flex flex-col">
+                <div class="p-4 bg-sky-900/30 font-bold border-b border-white/10 text-xs tracking-widest uppercase">Live Channels</div>
+                <div id="list" class="channel-list text-[13px] text-slate-300">
+                    <div class="p-10 text-center animate-pulse text-slate-500 text-xs">正在通过私人通道同步线路...</div>
                 </div>
             </div>
         </div>
@@ -49,7 +49,8 @@
 
     <script>
         let dp;
-        const PROXY = "https://cors-anywhere.azm.workers.dev/"; // 使用公共代理解决跨域问题
+        // 【注意】请将下面的地址替换为你刚才创建的 Cloudflare Worker 地址
+        const PROXY_SERVER = "https://my-proxy.1078510265.workers.dev/"; 
         const M3U_URL = "https://raw.githubusercontent.com/Kimentanm/aptv/master/m3u/iptv.m3u";
 
         function initPlayer(url) {
@@ -57,6 +58,7 @@
             dp = new DPlayer({
                 container: document.getElementById('dplayer'),
                 autoplay: true,
+                screenshot: true,
                 video: { url: url, type: 'hls' }
             });
             dp.play();
@@ -64,8 +66,9 @@
 
         async function loadChannels() {
             try {
-                // 通过代理请求，解决 GitHub 访问失败和跨域问题
-                const res = await fetch(PROXY + M3U_URL);
+                // 使用私人代理抓取 M3U
+                const requestUrl = `${PROXY_SERVER}?url=${encodeURIComponent(M3U_URL)}`;
+                const res = await fetch(requestUrl);
                 const data = await res.text();
                 const lines = data.split('\n');
                 let html = '';
@@ -73,25 +76,25 @@
 
                 for (let i = 0; i < lines.length; i++) {
                     if (lines[i].includes('#EXTINF')) {
-                        const name = lines[i].split(',')[1] || '未知频道';
+                        const name = lines[i].split(',')[1]?.trim() || '未知频道';
                         const url = lines[i+1]?.trim();
                         if (url && url.startsWith('http')) {
                             if(!first) first = url;
-                            html += `<div class="channel-item" onclick="initPlayer('${url}')">${name}</div>`;
+                            html += `<div class="channel-item truncate" onclick="initPlayer('${url}')"><span>▶</span> ${name}</div>`;
                         }
                     }
                 }
-                document.getElementById('list').innerHTML = html;
+                document.getElementById('list').innerHTML = html || '<div class="p-10 text-center">暂无可用线路</div>';
                 if(first) initPlayer(first);
             } catch (e) {
-                document.getElementById('list').innerHTML = '<div class="p-10 text-center text-red-400 text-xs">列表加载失败，请刷新或检查网络</div>';
+                document.getElementById('list').innerHTML = '<div class="p-10 text-center text-red-400 text-xs">私人通道连接失败，请检查 Worker 配置</div>';
             }
         }
 
         function doSearch() {
             const val = document.getElementById('kw').value;
             if(!val) return;
-            // 搜索跳转：直接利用聚合搜索
+            // 搜索逻辑改进：由于 XPTV.json 是 API 驱动，网页端通过 Google 聚合搜索该源内含的影片最为稳定
             window.open(`https://www-d-google-d-com-s-gmn.tga.wuaicha.cc/search?q=${encodeURIComponent(val)}+在线观看`, '_blank');
         }
 

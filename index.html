@@ -3,72 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YTWHZ 极效流媒体中心</title>
+    <title>YTWHZ 极效流媒体中心 | 电视直播版</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js"></script>
     <style>
         body { background: #0f172a; color: white; font-family: 'Inter', sans-serif; }
         .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
-        .card:hover { transform: translateY(-3px); transition: all 0.3s; border-color: #38bdf8; }
-        .timer-active { color: #f43f5e; animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .channel-item:hover { background: rgba(56, 189, 248, 0.2); }
+        #dplayer { border-radius: 1rem; overflow: hidden; background: #000; height: 400px; }
     </style>
 </head>
-<body class="p-6 md:p-12">
-    <header class="max-w-6xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
+<body class="p-4 md:p-8">
+    <header class="max-w-7xl mx-auto mb-6 flex justify-between items-center">
         <div>
-            <h1 class="text-4xl font-bold text-sky-400">YTWHZ HUB</h1>
-            <p class="text-slate-400 text-sm">合法资源聚合 • 心情分类 • 观影自律</p>
+            <h1 class="text-3xl font-bold text-sky-400">YTWHZ TV HUB</h1>
+            <p class="text-slate-400 text-xs">集成全球合法直播源 (M3U)</p>
         </div>
-        <div class="glass px-6 py-3 rounded-2xl flex items-center gap-4">
-            <span class="text-xs text-slate-400">🎬 观影计时:</span>
-            <span id="timerDisplay" class="font-mono text-xl text-sky-400">00:00</span>
-            <button onclick="toggleTimer()" id="timerBtn" class="text-xs bg-sky-500/20 hover:bg-sky-500/40 px-3 py-1 rounded-lg border border-sky-500/50 transition">开启专注模式</button>
-        </div>
+        <div id="timerDisplay" class="font-mono text-xl text-sky-400">00:00</div>
     </header>
 
-    <main class="max-w-6xl mx-auto">
-        <section class="glass p-6 rounded-3xl mb-8">
-            <div class="flex gap-3">
-                <input id="searchInput" type="text" placeholder="搜索免费电影、剧集或频道..." class="flex-1 bg-slate-800 border-none rounded-xl px-6 py-3 outline-none">
-                <button onclick="multiSearch()" class="bg-sky-500 hover:bg-sky-400 px-8 py-3 rounded-xl font-bold transition">一键全搜</button>
-            </div>
-        </section>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div class="md:col-span-2 space-y-4">
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="glass p-4 rounded-xl card cursor-pointer" onclick="window.open('https://pluto.tv')">📺 Pluto TV</div>
-                    <div class="glass p-4 rounded-xl card cursor-pointer" onclick="window.open('https://tubitv.com')">🍿 Tubi TV</div>
-                    <div class="glass p-4 rounded-xl card cursor-pointer" onclick="window.open('https://www.plex.tv/watch-free/')">🖥️ Plex Free</div>
-                    <div class="glass p-4 rounded-xl card cursor-pointer" onclick="window.open('https://archive.org/details/movies')">🏛️ Archive.org</div>
-                </div>
-                <div class="glass p-6 rounded-2xl bg-sky-500/5">
-                    <h4 class="text-sm font-bold text-sky-400 mb-2 font-bold underline">⚡️ 快捷优化工具</h4>
-                    <div class="flex gap-4 text-xs">
-                        <a href="https://chrome.google.com/webstore/detail/ublock-origin/cjpalhdlnbpafiamejdnhcphjbkeiagm" target="_blank" class="text-slate-400 hover:text-white">安装广告屏蔽</a>
-                        <a href="https://www.opensubtitles.org" target="_blank" class="text-slate-400 hover:text-white">合法字幕库</a>
-                    </div>
-                </div>
-            </div>
-
-            <aside class="glass p-6 rounded-3xl">
-                <h3 class="font-bold text-sky-400 mb-4 border-b border-slate-700 pb-2">📋 智能清单</h3>
-                <div class="space-y-3 mb-4">
-                    <input id="todoInput" type="text" class="w-full bg-slate-800 rounded-lg px-3 py-2 text-sm outline-none" placeholder="输入想看的片名...">
-                    <select id="moodSelect" class="w-full bg-slate-800 rounded-lg px-3 py-2 text-xs outline-none text-slate-300">
-                        <option value="轻松">😊 轻松休闲</option>
-                        <option value="紧张">🔥 紧张刺激</option>
-                        <option value="教育">📚 深度/记录</option>
-                    </select>
-                    <button onclick="addTodo()" class="w-full bg-sky-600/50 hover:bg-sky-600 py-1 rounded-lg text-sm transition">加入清单</button>
-                </div>
-                <ul id="todoList" class="space-y-2 text-sm max-h-80 overflow-y-auto"></ul>
-            </aside>
+    <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div class="lg:col-span-3 space-y-6">
+            <div id="dplayer"></div>
+            
+            <section class="glass p-6 rounded-2xl flex gap-3">
+                <input id="searchInput" type="text" placeholder="搜索电影或剧集..." class="flex-1 bg-slate-800 border-none rounded-xl px-4 py-2 outline-none">
+                <button onclick="multiSearch()" class="bg-sky-500 hover:bg-sky-400 px-6 py-2 rounded-xl font-bold transition">搜索</button>
+            </section>
         </div>
+
+        <aside class="lg:col-span-1 glass rounded-3xl overflow-hidden flex flex-col" style="height: 520px;">
+            <div class="p-4 bg-sky-500/10 border-b border-white/10">
+                <h3 class="font-bold text-sky-400 flex items-center gap-2">📺 在线直播源</h3>
+            </div>
+            <div id="channelList" class="flex-1 overflow-y-auto p-2 space-y-1">
+                <div class="p-8 text-center text-slate-500 text-sm">正在加载频道列表...</div>
+            </div>
+        </aside>
     </main>
 
     <script>
-        // 搜索逻辑
+        let dp;
+        
+        // 初始化播放器
+        function initPlayer(url, title = '正在播放') {
+            dp = new DPlayer({
+                container: document.getElementById('dplayer'),
+                live: true,
+                video: {
+                    url: url,
+                    type: 'hls'
+                }
+            });
+            dp.play();
+        }
+
+        // 解析 M3U 并加载频道
+        async function loadChannels() {
+            const m3uUrl = 'https://raw.githubusercontent.com/Kimentanm/aptv/master/m3u/iptv.m3u';
+            try {
+                const response = await fetch(m3uUrl);
+                const data = await response.text();
+                const lines = data.split('\n');
+                const channels = [];
+
+                for (let i = 0; i < lines.length; i++) {
+                    if (lines[i].startsWith('#EXTINF')) {
+                        const title = lines[i].split(',')[1] || '未知频道';
+                        const url = lines[i + 1]?.trim();
+                        if (url && url.startsWith('http')) {
+                            channels.push({ title, url });
+                        }
+                    }
+                }
+
+                const listContainer = document.getElementById('channelList');
+                listContainer.innerHTML = channels.map(ch => `
+                    <div class="channel-item p-3 rounded-lg cursor-pointer text-sm transition" 
+                         onclick="initPlayer('${ch.url}', '${ch.title}')">
+                        <span class="text-slate-300">▶</span> ${ch.title}
+                    </div>
+                `).join('');
+
+                // 默认播放第一个频道
+                if (channels.length > 0) initPlayer(channels[0].url, channels[0].title);
+
+            } catch (err) {
+                document.getElementById('channelList').innerHTML = '<div class="p-4 text-red-400 text-xs">加载失败，请检查网络访问 GitHub 的权限。</div>';
+            }
+        }
+
         function multiSearch() {
             const query = document.getElementById('searchInput').value;
             if (!query) return;
@@ -76,63 +101,8 @@
             window.open(`https://www.rottentomatoes.com/search?search=${encodeURIComponent(query)}`, '_blank');
         }
 
-        // 计时器逻辑 (落实提示词：消费时间管理器)
-        let timerInterval;
-        let seconds = 0;
-        function toggleTimer() {
-            const btn = document.getElementById('timerBtn');
-            const display = document.getElementById('timerDisplay');
-            if (timerInterval) {
-                clearInterval(timerInterval);
-                timerInterval = null;
-                btn.innerText = "继续观影";
-                display.classList.remove('timer-active');
-            } else {
-                display.classList.add('timer-active');
-                btn.innerText = "暂停计时";
-                timerInterval = setInterval(() => {
-                    seconds++;
-                    let m = Math.floor(seconds / 60).toString().padStart(2, '0');
-                    let s = (seconds % 60).toString().padStart(2, '0');
-                    display.innerText = `${m}:${s}`;
-                    if (seconds === 3600) alert("您已连续观看1小时，建议休息一下眼睛！");
-                }, 1000);
-            }
-        }
-
-        // 清单逻辑
-        function addTodo() {
-            const input = document.getElementById('todoInput');
-            const mood = document.getElementById('moodSelect').value;
-            if (!input.value) return;
-            const list = JSON.parse(localStorage.getItem('stream-todo-v2') || '[]');
-            list.push({ text: input.value, mood: mood });
-            localStorage.setItem('stream-todo-v2', JSON.stringify(list));
-            input.value = '';
-            renderTodos();
-        }
-
-        function removeTodo(index) {
-            const list = JSON.parse(localStorage.getItem('stream-todo-v2') || '[]');
-            list.splice(index, 1);
-            localStorage.setItem('stream-todo-v2', JSON.stringify(list));
-            renderTodos();
-        }
-
-        function renderTodos() {
-            const list = JSON.parse(localStorage.getItem('stream-todo-v2') || '[]');
-            const container = document.getElementById('todoList');
-            container.innerHTML = list.map((item, i) => `
-                <li class="bg-slate-800/50 p-3 rounded-xl border border-white/5 flex justify-between items-center group">
-                    <div>
-                        <span class="block text-white">${item.text}</span>
-                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-400">${item.mood}</span>
-                    </div>
-                    <button onclick="removeTodo(${i})" class="text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition">✕</button>
-                </li>
-            `).join('');
-        }
-        renderTodos();
+        // 页面加载后执行
+        window.onload = loadChannels;
     </script>
 </body>
 </html>

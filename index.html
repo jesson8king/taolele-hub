@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YTWHZ 流媒体中心</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #0f172a; color: white; }
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        .card:hover { transform: translateY(-5px); transition: all 0.3s; border-color: #38bdf8; }
+    </style>
+</head>
+<body class="p-6 md:p-12">
+    <header class="max-w-6xl mx-auto mb-12">
+        <h1 class="text-4xl font-bold text-sky-400 mb-2">YTWHZ Streaming Hub</h1>
+        <p class="text-slate-400">合法、免费、高效的私人影院控制台</p>
+    </header>
+
+    <main class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+        <section class="md:col-span-2 grid grid-cols-2 gap-4">
+            <div class="glass p-6 rounded-2xl card cursor-pointer" onclick="window.open('https://pluto.tv')">
+                <h3 class="text-xl font-semibold mb-2">📺 Pluto TV</h3>
+                <p class="text-sm text-slate-400">全球最大的免费 FAST 频道平台</p>
+            </div>
+            <div class="glass p-6 rounded-2xl card cursor-pointer" onclick="window.open('https://tubitv.com')">
+                <h3 class="text-xl font-semibold mb-2">🎬 Tubi TV</h3>
+                <p class="text-sm text-slate-400">海量合法电影与剧集库</p>
+            </div>
+            <div class="glass p-6 rounded-2xl card cursor-pointer" onclick="window.open('https://www.youtube.com/feed/guide_builder')">
+                <h3 class="text-xl font-semibold mb-2">🔴 Live News</h3>
+                <p class="text-sm text-slate-400">YouTube 全球新闻直播聚合</p>
+            </div>
+            <div class="glass p-6 rounded-2xl card cursor-pointer" onclick="window.open('https://www.rakuten.tv/cn')">
+                <h3 class="text-xl font-semibold mb-2">🎞️ Rakuten TV</h3>
+                <p class="text-sm text-slate-400">精选欧洲与全球免费内容</p>
+            </div>
+        </section>
+
+        <aside class="space-y-6">
+            <div class="glass p-6 rounded-2xl">
+                <h3 class="text-lg font-bold mb-4 text-sky-400 underline">待看清单 (Local)</h3>
+                <ul id="watchlist" class="text-sm space-y-2">
+                    </ul>
+                <input id="newTodo" type="text" placeholder="添加电影..." class="w-full mt-4 bg-transparent border-b border-slate-600 outline-none p-1 text-sm">
+            </div>
+            <div class="glass p-6 rounded-2xl text-xs text-slate-500">
+                <p>💡 提示：使用 <b>Ctrl+B</b> 快速隐藏广告工具栏</p>
+            </div>
+        </aside>
+    </main>
+</body>
+</html>
